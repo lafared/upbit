@@ -1,6 +1,7 @@
 package com.example.upbitpricenoti
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
@@ -65,11 +66,15 @@ class MainActivity : AppCompatActivity() {
                 "ALARM ON, CHECK MUTE"
             } else {
                 stopAlarmSound()
+                bgCnt = 0
+                binding.background.setBackgroundColor(Color.parseColor("#ffffff"))
                 "ALARM OFF"
             }
         }
         binding.btn2.setOnClickListener {
             stopAlarmSound()
+            bgCnt = 0
+            binding.background.setBackgroundColor(Color.parseColor("#ffffff"))
             ringtonePauseTime = System.currentTimeMillis()
         }
         binding.btn3.setOnClickListener {
@@ -148,12 +153,14 @@ class MainActivity : AppCompatActivity() {
                     Log.d("tmp88", "PLUS!!!!!!!!!!!!!!!!!!!!!")
                     binding.textNoti.text = "PLUS"
                     playAlarmSound()
+                    toggleBg()
                     isNoti = true
                 }
                 if (fallNotiIfMinus < BigDecimal("0")) {
                     Log.d("tmp88", "!!!!!!!!! MINUS  !!!!!!!!!!!!")
                     binding.textNoti.text = "MINUS"
                     playAlarmSound()
+                    toggleBg()
                     isNoti = true
                 }
                 if (!isNoti) {
@@ -196,5 +203,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         return ringtoneUris
+    }
+
+    var bgCnt = 0
+    fun toggleBg() {
+        if (bgCnt++ % 2 == 0) {
+            binding.background.setBackgroundColor(Color.parseColor("#ff0000"))
+        } else {
+            binding.background.setBackgroundColor(Color.parseColor("#0000ff"))
+        }
     }
 }
