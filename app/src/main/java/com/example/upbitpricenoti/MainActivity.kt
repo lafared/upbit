@@ -25,12 +25,14 @@ class MainActivity : AppCompatActivity() {
     private val LOW_PRICE = "low_price"
 
     private lateinit var binding: ActivityMainBinding
+
+    private val timer = Timer()
     private lateinit var requestQueue: RequestQueue
     private lateinit var ringtone: Ringtone
     private var isRingtoneTurnOn = false
     private var isRingtoneOn = false
-    private var ringtoneOffTime = 0L
-    private var ringtoneOffTerm = 10 * 60 * 1000
+    private var ringtonePauseTime = 0L
+    private var ringtoneOffTerm = 3 * 60 * 1000
     private var ringtoneUri: Uri? = null
 
     private val url = "https://api.upbit.com/v1/candles/minutes/1?market=KRW-BTC&count=4"
@@ -59,23 +61,32 @@ class MainActivity : AppCompatActivity() {
         binding.btn1.setOnClickListener {
             isRingtoneTurnOn = !isRingtoneTurnOn
             binding.textNotiStatus.text = if (isRingtoneTurnOn) {
-                "ALARM ON"
+                ringtonePauseTime = 0
+                "ALARM ON, CHECK MUTE"
             } else {
                 stopAlarmSound()
                 "ALARM OFF"
             }
         }
-        binding.btn2.setOnClickListener { stopAlarmSound() }
+        binding.btn2.setOnClickListener {
+            stopAlarmSound()
+            ringtonePauseTime = System.currentTimeMillis()
+        }
         binding.btn3.setOnClickListener {
 //            ringtone = RingtoneManager.getRingtone(this, Uri.parse("content://media/internal/audio/media/78?title=Dvorak%20Songs%20My%20Mother%20Taught%20Me&canonical=1"))
 //            ringtone.play()
         }
 
-        Timer().schedule(object : TimerTask() {
+        timer.schedule(object : TimerTask() {
             override fun run() {
                 getData()
             }
-        }, 0, 3000)
+        }, 0, 1000)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        timer.cancel()
     }
 
     @SuppressLint("SetTextI18n")
@@ -147,7 +158,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (!isNoti) {
                     binding.textNoti.text = "..."
-                    stopAlarmSound()
+//                    stopAlarmSound()      // 너무 바로 꺼짐
                 }
             },
             {
@@ -158,19 +169,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun playAlarmSound() {
-        val resumeTime = ringtoneOffTime + ringtoneOffTerm
-        if (isRingtoneTurnOn && System.currentTimeMillis() > resumeTime) {
+        val resumeTime = ringtonePauseTime + ringtoneOffTerm
+        Log.d("tmp88", "isRingtoneOn : $isRingtoneOn, isRingtoneTurnOn : $isRingtoneTurnOn, time : ${System.currentTimeMillis() > resumeTime}, resumeTime: $resumeTime")
+        if (!isRingtoneOn && isRingtoneTurnOn && System.currentTimeMillis() > resumeTime) {
             Log.d("tmp87", "playAlarmSound")
             ringtone.play()
             isRingtoneOn = true
-            ringtoneOffTime = 0L
+            ringtonePauseTime = 0L
         }
     }
 
     fun stopAlarmSound() {
         ringtone.stop()
         isRingtoneOn = false
-        ringtoneOffTime = System.currentTimeMillis()
     }
 
     fun getRingtoneUris(): List<Uri> {
